@@ -45,7 +45,7 @@ sync_fish_colors_with_kitty
 # Sync Base16 theme on shell startup
 base16_theme
 
-# bash-style aliases
+# bash-esque aliases
 function vi; nvim $argv; end
 function vim; nvim $argv; end
 function l; ls -la; end
@@ -54,4 +54,7 @@ function tsc; source /Users/matter/coldtype/typesoundcode.feb2025/.venv/bin/acti
 # use startship for prompt
 starship init fish | source
 # starship preset gruvbox-rainbow -o ~/.config/starship.toml
-starship preset no-runtime-versions -o ~/.config/starship.toml
+# starship preset no-runtime-versions -o ~/.config/starship.toml
+
+# set editor, mostly for lazygit but probably other stuff
+set -gx EDITOR nvim lazygit
