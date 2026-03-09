@@ -45,6 +45,9 @@ sync_fish_colors_with_kitty
 # Sync Base16 theme on shell startup
 base16_theme
 
+# Disable automatic window title (kitty tab bar handles this)
+function fish_title; end
+
 # bash-esque aliases
 function vi; nvim $argv; end
 function vim; nvim $argv; end
@@ -57,4 +60,15 @@ starship init fish | source
 # starship preset no-runtime-versions -o ~/.config/starship.toml
 
 # set editor, mostly for lazygit but probably other stuff
-set -gx EDITOR nvim lazygit
+set -gx EDITOR nvim
+
+# Ollama API base URL for aider
+set -gx OLLAMA_API_BASE http://localhost:11434
+
+# Audio plugin directories
+set -gx VST3_USER_DIR ~/Library/Audio/Plug-Ins/VST3
+set -gx VST3_SYSTEM_DIR /Library/Audio/Plug-Ins/VST3
+set -gx AU_USER_DIR ~/Library/Audio/Plug-Ins/Components
+set -gx AU_SYSTEM_DIR /Library/Audio/Plug-Ins/Components
+set -gx CLAP_USER_DIR ~/Library/Audio/Plug-Ins/CLAP
+set -gx CLAP_SYSTEM_DIR /Library/Audio/Plug-Ins/CLAP

@@ -1,3 +1,3 @@
-function todo
+function td
   vault todo
 end
