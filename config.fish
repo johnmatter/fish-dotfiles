@@ -47,3 +47,8 @@ set -gx AU_USER_DIR ~/Library/Audio/Plug-Ins/Components
 set -gx AU_SYSTEM_DIR /Library/Audio/Plug-Ins/Components
 set -gx CLAP_USER_DIR ~/Library/Audio/Plug-Ins/CLAP
 set -gx CLAP_SYSTEM_DIR /Library/Audio/Plug-Ins/CLAP
+
+source ~/.secrets.fish
+
+# Load SSH key from keychain if the agent is empty (git commit signing)
+ssh-add -l > /dev/null 2>&1; or ssh-add --apple-load-keychain > /dev/null 2>&1
