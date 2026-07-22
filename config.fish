@@ -27,8 +27,15 @@ starship init fish | source
 # starship preset gruvbox-rainbow -o ~/.config/starship.toml
 # starship preset no-runtime-versions -o ~/.config/starship.toml
 
+# XDG base dirs (lazygit & other XDG-aware tools read config from here)
+set -gx XDG_CONFIG_HOME $HOME/.config
+
 # set editor, mostly for lazygit but probably other stuff
 set -gx EDITOR nvim
+
+# Claude Code downgrades to 256-color inside tmux by default; opt back into 24-bit
+# so its theme matches nvim (COLORTERM=truecolor provides the base level).
+set -gx CLAUDE_CODE_TMUX_TRUECOLOR 1
 
 # Ollama API base URL for aider
 set -gx OLLAMA_API_BASE http://localhost:11434
