@@ -4,7 +4,16 @@ function pi-local --description 'Start the local MLX server if needed, then run 
     set -l logdir $HOME/.local/state/pi
     set -l log $logdir/mlx-server.log
 
-    if not curl -s -m 2 "http://127.0.0.1:$port/v1/models" >/dev/null 2>&1
+    # /v1/models answers from a static catalog before weights are resident, so it
+    # cannot tell us the server can actually serve. A 1-token completion can.
+    set -l probe_body (printf '{"model":"%s","messages":[{"role":"user","content":"hi"}],"max_tokens":1}' $model)
+
+    function __pi_local_probe --no-scope-shadowing
+        curl -s -m 20 -o /dev/null -X POST "http://127.0.0.1:$port/v1/chat/completions" \
+            -H 'Content-Type: application/json' -d "$probe_body"
+    end
+
+    if not __pi_local_probe
         # Port 8080 is held by bookserve; 8081 is ours. If something else has
         # taken it, say so rather than spawning a server that cannot bind.
         if lsof -nP -iTCP:$port -sTCP:LISTEN >/dev/null 2>&1
@@ -19,16 +28,17 @@ function pi-local --description 'Start the local MLX server if needed, then run 
         disown
 
         set -l waited 0
-        while not curl -s -m 2 "http://127.0.0.1:$port/v1/models" >/dev/null 2>&1
+        while not __pi_local_probe
             sleep 2
-            set waited (math $waited + 2)
-            if test $waited -ge 180
-                echo "pi-local: server did not become ready in 180s. Log: $log" >&2
+            set waited (math $waited + 22)
+            if test $waited -ge 300
+                echo "pi-local: server did not become ready in 300s. Log: $log" >&2
                 return 1
             end
         end
         echo "pi-local: ready after {$waited}s"
     end
 
+    functions -e __pi_local_probe
     exec pi $argv
 end
