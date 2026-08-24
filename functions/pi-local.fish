@@ -17,6 +17,7 @@ function pi-local --description 'Start the local MLX server if needed, then run 
         # Port 8080 is held by bookserve; 8081 is ours. If something else has
         # taken it, say so rather than spawning a server that cannot bind.
         if lsof -nP -iTCP:$port -sTCP:LISTEN >/dev/null 2>&1
+            functions -e __pi_local_probe
             echo "pi-local: port $port is in use but not answering as an MLX server:" >&2
             lsof -nP -iTCP:$port -sTCP:LISTEN >&2
             return 1
@@ -27,16 +28,17 @@ function pi-local --description 'Start the local MLX server if needed, then run 
         nohup mlx_lm.server --model $model --port $port >>$log 2>&1 &
         disown
 
-        set -l waited 0
+        set -l t0 (date +%s)
         while not __pi_local_probe
             sleep 2
-            set waited (math $waited + 22)
-            if test $waited -ge 300
+            set -l elapsed (math (date +%s) - $t0)
+            if test $elapsed -ge 300
+                functions -e __pi_local_probe
                 echo "pi-local: server did not become ready in 300s. Log: $log" >&2
                 return 1
             end
         end
-        echo "pi-local: ready after {$waited}s"
+        echo "pi-local: ready after "(math (date +%s) - $t0)"s"
     end
 
     functions -e __pi_local_probe
