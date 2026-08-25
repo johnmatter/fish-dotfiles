@@ -9,16 +9,21 @@ function pi-status --description 'Report whether the local MLX server is running
         return 1
     end
 
+    # Uptime is here so a footprint reading can be judged as drift or a spike.
+    set -l uptime (ps -o etime= -p $pid | string trim)
+    echo "process:  running (pid $pid, up $uptime)"
+
     # Physical footprint is the only figure that sees Metal-backed allocations.
     # Measured against a loaded 19 GB model: ps rss said 4.7 GB and vm_stat's
     # "wired" said 4.2 GB, while footprint/top/vmmap all agreed on ~19-20 GB.
     # footprint is also the fastest of the three (~0.07s vs 1.7s for vmmap).
     set -l gb (footprint -p $pid 2>/dev/null | awk '/phys_footprint:/ {v=$2; u=$3; if(u=="KB") v/=1048576; else if(u=="MB") v/=1024; else if(u=="TB") v*=1024; printf "%.1f\n", v; exit}')
+    set -l total (math -s0 (sysctl -n hw.memsize) / 1073741824)
     if test -z "$gb"
-        echo "process:  running (pid $pid, footprint unavailable)"
+        echo "memory:   footprint unavailable"
         set gb 0
     else
-        echo "process:  running (pid $pid, $gb GB footprint)"
+        echo "memory:   $gb GB footprint  ($total GB machine)"
     end
 
     if curl -s -m 3 -o /dev/null "http://127.0.0.1:$port/v1/models"
