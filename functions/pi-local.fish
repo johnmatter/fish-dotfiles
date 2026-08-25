@@ -48,5 +48,9 @@ function pi-local --description 'Start the local MLX server if needed, then run 
     end
 
     functions -e __pi_local_probe
-    exec pi $argv
+    # Deliberately NOT `exec`. Exec replaces this shell with pi, so the pane has
+    # no process left when pi exits — ctrl-d would destroy the whole tmux pane
+    # instead of returning to the prompt. Running pi as a child costs one idle
+    # shell and gives you your prompt back on exit.
+    pi $argv
 end
