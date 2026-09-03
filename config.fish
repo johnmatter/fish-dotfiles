@@ -3,7 +3,7 @@
 # conf.d/ — so a host file there loads on every machine, not just its own, and
 # loads twice on its own (once by conf.d, once by the source below).
 set host (hostname)
-set host_config ~/.config/fish/hosts/$host.fish
+set host_config $__fish_config_dir/hosts/$host.fish
 if test -f $host_config
     source $host_config
 end
