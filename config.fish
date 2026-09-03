@@ -24,8 +24,10 @@ starship init fish | source
 # starship preset gruvbox-rainbow -o ~/.config/starship.toml
 # starship preset no-runtime-versions -o ~/.config/starship.toml
 
-# XDG base dirs (lazygit & other XDG-aware tools read config from here)
-set -gx XDG_CONFIG_HOME $HOME/.config
+# XDG base dirs (lazygit & other XDG-aware tools read config from here).
+# Only set a default — overwriting an explicit value breaks running this config
+# against an alternate config root, which is how it gets tested in isolation.
+set -q XDG_CONFIG_HOME; or set -gx XDG_CONFIG_HOME $HOME/.config
 
 # set editor, mostly for lazygit but probably other stuff
 set -gx EDITOR nvim
