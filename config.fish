@@ -37,4 +37,6 @@ set -gx CLAUDE_CODE_TMUX_TRUECOLOR 1
 # Ollama API base URL for aider
 set -gx OLLAMA_API_BASE http://localhost:11434
 
-source ~/.secrets.fish
+# Machine-local secrets are optional — not every host has this file, and a bare
+# `source` on a missing file errors on every shell start.
+test -f ~/.secrets.fish; and source ~/.secrets.fish
