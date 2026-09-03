@@ -3,9 +3,12 @@ fish_add_path /opt/homebrew/bin
 fish_add_path /opt/homebrew/sbin
 fish_add_path /usr/local/texlive/2025/bin/universal-darwin
 
-# host-specific configs
+# Host-specific config: PATH, OS-specific env, machine-local aliases.
+# Lives in hosts/ rather than conf.d/ because fish auto-sources *every* file in
+# conf.d/ — so a host file there loads on every machine, not just its own, and
+# loads twice on its own (once by conf.d, once by the source below).
 set host (hostname)
-set host_config ~/.config/fish/conf.d/hostname-$host.fish
+set host_config ~/.config/fish/hosts/$host.fish
 if test -f $host_config
     source $host_config
 end
