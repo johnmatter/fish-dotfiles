@@ -22,6 +22,11 @@ function check_failed -a msg
     set -g failures (math $failures + 1)
 end
 
+# A non-tty caller (`ssh host fish bin/verify-config.fish`) leaves TERM unset,
+# and fish then warns about it on stderr. That is a property of the invocation,
+# not of the config under test, so default it before check 1 runs.
+set -q TERM; or set -gx TERM xterm-256color
+
 set -l fish_bin (status fish-path)
 set -l conf_d (dirname (status filename))/../conf.d
 
