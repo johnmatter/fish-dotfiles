@@ -8,6 +8,7 @@
 #   1. a login+interactive shell emits nothing on stderr
 #   2. PATH has no duplicate entries
 #   3. conf.d/ holds no host-specific files
+#   4. every plugin declared in fish_plugins is actually installed
 #
 # 2 and 3 are regressions, not hypotheticals: host files used to live in
 # conf.d/, which fish auto-sources, so every host loaded every other host's
@@ -45,6 +46,26 @@ if test (count $stray) -gt 0
     check_failed "host-specific files still in conf.d/ (fish auto-sources these on every machine): $stray"
 else
     echo "ok    conf.d/ has no host-specific files"
+end
+
+# 4. fish_plugins is the tracked, declarative plugin set; fisher's registry
+#    lives in the untracked fish_variables and is derived from it. If a machine
+#    has the manifest but not the registry (fresh clone, reset universals), the
+#    plugins still work — their files are tracked — but fisher can't manage
+#    them until `fisher update` reconciles the two.
+set -l manifest (dirname (status filename))/../fish_plugins
+if test -f $manifest
+    set -l declared (string trim <$manifest | string match -er '\\S')
+    set -l installed (fisher list 2>/dev/null)
+    set -l missing
+    for plugin in $declared
+        contains -- $plugin $installed; or set -a missing $plugin
+    end
+    if test (count $missing) -gt 0
+        check_failed "declared in fish_plugins but not registered with fisher (run `fisher update`): $missing"
+    else
+        echo "ok    all "(count $declared)" declared plugins are installed"
+    end
 end
 
 if test $failures -gt 0
