@@ -30,7 +30,13 @@ function pi-local --description 'Start the local MLX server if needed, then run 
         else
             mkdir -p $logdir
             echo "pi-local: starting $model on port $port (~40s to load)…"
-            nohup mlx_lm.server --model $model --port $port >>$log 2>&1 &
+            # Prompt cache is unbounded by default (10 sequences). A 2.6 GB cache on
+            # top of 20.4 GB of weights hit the 25 GB Metal ceiling on 2026-09-03.
+            # 1.5 GB leaves ~3 GB for prefill transients. The byte cap is the real bound;
+            # 40 sequences lets a benchmark client churn without evicting the
+            # interactive session's prefix (LRU is by bytes, so 1.5 GB still wins).
+            nohup mlx_lm.server --model $model --port $port \
+                --prompt-cache-bytes 1610612736 --prompt-cache-size 40 >>$log 2>&1 &
             disown
         end
 
