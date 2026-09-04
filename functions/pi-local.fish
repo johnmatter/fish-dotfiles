@@ -68,5 +68,8 @@ function pi-local --description 'Start the local MLX server if needed, then run 
     # no process left when pi exits — ctrl-d would destroy the whole tmux pane
     # instead of returning to the prompt. Running pi as a child costs one idle
     # shell and gives you your prompt back on exit.
+    # The sandbox extension sets TMPDIR=/tmp/claude for bash tool calls but does
+    # not create it; uv fails with "No such file or directory" if it is missing.
+    mkdir -p /tmp/claude
     pi $argv
 end
