@@ -9,6 +9,7 @@ abbr -a git-branch 'git log --oneline --graph --all --decorate --simplify-by-dec
 abbr -a dot 'git --git-dir=$HOME/dotfiles/ --work-tree=$HOME'
 abbr -a yt-dlp-wav 'yt-dlp -x --audio-format wav'
 abbr -a yt-mp4 'yt-dlp -t mp4'
+abbr -a r 'ranger .'
 
 # coldtype's `ct` lives in its own venv (skia + glfw viewer); the bare `ct` on
 # PATH is a homebrew build without the viewer extra. Expand to the full one.
