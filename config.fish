@@ -20,9 +20,16 @@ function vim; nvim $argv; end
 function l; ls -la; end
 
 # use startship for prompt
+# starship defaults to ~/.config/starship.toml. Point it at the copy tracked in
+# this repo instead, so a new machine gets the prompt by cloning the config —
+# no per-host symlink to remember. Must precede `starship init`, which runs the
+# binary. The preset lines below write through the same variable; aimed at the
+# default path they would silently produce a file starship no longer reads.
+set -gx STARSHIP_CONFIG $__fish_config_dir/starship.toml
+
 starship init fish | source
-# starship preset gruvbox-rainbow -o ~/.config/starship.toml
-# starship preset no-runtime-versions -o ~/.config/starship.toml
+# starship preset gruvbox-rainbow -o $STARSHIP_CONFIG
+# starship preset no-runtime-versions -o $STARSHIP_CONFIG
 
 # XDG base dirs (lazygit & other XDG-aware tools read config from here).
 # Only set a default — overwriting an explicit value breaks running this config
