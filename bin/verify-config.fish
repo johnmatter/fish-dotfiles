@@ -9,6 +9,7 @@
 #   2. PATH has no duplicate entries
 #   3. conf.d/ holds no host-specific files
 #   4. every plugin declared in fish_plugins is actually installed
+#   5. fish_user_paths holds no directories that do not exist
 #
 # 2 and 3 are regressions, not hypotheticals: host files used to live in
 # conf.d/, which fish auto-sources, so every host loaded every other host's
@@ -71,6 +72,22 @@ if test -f $manifest
     else
         echo "ok    all "(count $declared)" declared plugins are installed"
     end
+end
+
+# 5. fish_user_paths is universal state: fish_add_path writes to it and never
+#    removes. An entry added by a config that once ran on every host outlives
+#    the fix that stopped adding it — the ThinkPad carried /opt/homebrew/bin and
+#    a macOS texlive path long after the hosts/ split. Check 2 cannot see this;
+#    the entries are unique, they just are not this machine's. A path that does
+#    not resolve to a directory is the signature.
+set -l stale
+for p in $fish_user_paths
+    test -d $p; or set -a stale $p
+end
+if test (count $stale) -gt 0
+    check_failed "fish_user_paths entries do not exist (stale universals, likely from another host): $stale"
+else
+    echo "ok    fish_user_paths all resolve"
 end
 
 if test $failures -gt 0
