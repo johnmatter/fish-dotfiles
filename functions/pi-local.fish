@@ -26,11 +26,27 @@ function pi-local --description 'Start the local MLX server if needed, then run 
                 functions -e __pi_local_probe
                 return 1
             end
+            # A server that has been up for minutes and still cannot complete a
+            # 1-token request is not loading; its generate thread died (Metal OOM).
+            set -l up (ps -o etimes= -p $holder | string trim)
+            if test "$up" -gt 600
+                echo "pi-local: MLX server (pid $holder) has been up "(math -s0 $up / 60)" min but cannot serve." >&2
+                echo "pi-local: this is the wedged state (Metal OOM). Run pi-local-restart, then pi-local." >&2
+                grep -c 'kIOGPUCommandBufferCallbackErrorOutOfMemory' $log 2>/dev/null | string replace -r '^' 'pi-local: OOM traces in log: ' >&2
+                functions -e __pi_local_probe
+                return 1
+            end
             echo "pi-local: MLX server already up but still loading; waiting…"
         else
             mkdir -p $logdir
             echo "pi-local: starting $model on port $port (~40s to load)…"
-            nohup mlx_lm.server --model $model --port $port >>$log 2>&1 &
+            # Prompt cache is unbounded by default (10 sequences). A 2.6 GB cache on
+            # top of 20.4 GB of weights hit the 25 GB Metal ceiling on 2026-09-03.
+            # 1.5 GB leaves ~3 GB for prefill transients. The byte cap is the real bound;
+            # 40 sequences lets a benchmark client churn without evicting the
+            # interactive session's prefix (LRU is by bytes, so 1.5 GB still wins).
+            nohup mlx_lm.server --model $model --port $port \
+                --prompt-cache-bytes 1610612736 --prompt-cache-size 40 >>$log 2>&1 &
             disown
         end
 
@@ -52,5 +68,8 @@ function pi-local --description 'Start the local MLX server if needed, then run 
     # no process left when pi exits — ctrl-d would destroy the whole tmux pane
     # instead of returning to the prompt. Running pi as a child costs one idle
     # shell and gives you your prompt back on exit.
+    # The sandbox extension sets TMPDIR=/tmp/claude for bash tool calls but does
+    # not create it; uv fails with "No such file or directory" if it is missing.
+    mkdir -p /tmp/claude
     pi $argv
 end
