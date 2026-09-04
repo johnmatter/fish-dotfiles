@@ -1,11 +1,9 @@
-# PATH setup for Homebrew and MacTeX
-fish_add_path /opt/homebrew/bin
-fish_add_path /opt/homebrew/sbin
-fish_add_path /usr/local/texlive/2025/bin/universal-darwin
-
-# host-specific configs
+# Host-specific config: PATH, OS-specific env, machine-local aliases.
+# Lives in hosts/ rather than conf.d/ because fish auto-sources *every* file in
+# conf.d/ — so a host file there loads on every machine, not just its own, and
+# loads twice on its own (once by conf.d, once by the source below).
 set host (hostname)
-set host_config ~/.config/fish/conf.d/hostname-$host.fish
+set host_config $__fish_config_dir/hosts/$host.fish
 if test -f $host_config
     source $host_config
 end
@@ -20,15 +18,16 @@ function fish_title; end
 function vi; nvim $argv; end
 function vim; nvim $argv; end
 function l; ls -la; end
-function tsc; source /Users/matter/coldtype/typesoundcode.feb2025/.venv/bin/activate.fish; end
 
 # use startship for prompt
 starship init fish | source
 # starship preset gruvbox-rainbow -o ~/.config/starship.toml
 # starship preset no-runtime-versions -o ~/.config/starship.toml
 
-# XDG base dirs (lazygit & other XDG-aware tools read config from here)
-set -gx XDG_CONFIG_HOME $HOME/.config
+# XDG base dirs (lazygit & other XDG-aware tools read config from here).
+# Only set a default — overwriting an explicit value breaks running this config
+# against an alternate config root, which is how it gets tested in isolation.
+set -q XDG_CONFIG_HOME; or set -gx XDG_CONFIG_HOME $HOME/.config
 
 # set editor, mostly for lazygit but probably other stuff
 set -gx EDITOR nvim
@@ -40,15 +39,6 @@ set -gx CLAUDE_CODE_TMUX_TRUECOLOR 1
 # Ollama API base URL for aider
 set -gx OLLAMA_API_BASE http://localhost:11434
 
-# Audio plugin directories
-set -gx VST3_USER_DIR ~/Library/Audio/Plug-Ins/VST3
-set -gx VST3_SYSTEM_DIR /Library/Audio/Plug-Ins/VST3
-set -gx AU_USER_DIR ~/Library/Audio/Plug-Ins/Components
-set -gx AU_SYSTEM_DIR /Library/Audio/Plug-Ins/Components
-set -gx CLAP_USER_DIR ~/Library/Audio/Plug-Ins/CLAP
-set -gx CLAP_SYSTEM_DIR /Library/Audio/Plug-Ins/CLAP
-
-source ~/.secrets.fish
-
-# Load SSH key from keychain if the agent is empty (git commit signing)
-ssh-add -l > /dev/null 2>&1; or ssh-add --apple-load-keychain > /dev/null 2>&1
+# Machine-local secrets are optional — not every host has this file, and a bare
+# `source` on a missing file errors on every shell start.
+test -f ~/.secrets.fish; and source ~/.secrets.fish

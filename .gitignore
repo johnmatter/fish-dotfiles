@@ -1,0 +1,9 @@
+# Fish universal variables. Machine-local derived state: PATH entries built by
+# fish_add_path, fisher's plugin registry, per-host paths like TO_DIR/ml_venv.
+# Tracking it leaks one machine's absolute paths onto every other machine.
+#
+# Nothing here is source of truth: the plugin set is declared in fish_plugins
+# (tracked) and the plugin files are tracked too, so a machine with no
+# fish_variables still has working plugins — `fisher update` rebuilds the
+# registry, and the host file in hosts/ rebuilds fish_user_paths.
+fish_variables
